@@ -1,6 +1,6 @@
 # Claude Certified Developer – Foundations (CCDV-F): A Practical Study Guide
 
-I passed this exam on my first attempt with **962 / 1000** (pass mark 720). This repo is what I'd hand to a colleague who
+I passed this exam on my first attempt with **926 / 1000** (pass mark 720). This repo is what I'd hand to a colleague who
 asked, "How do I prepare?": the exam in brief, a map of what it measures, my notes, a study plan, and templates for tracking
 your own gaps.
 
@@ -91,7 +91,6 @@ These came up again and again in the notes and in practice material.
 - Official: [certification page and Exam Guide](https://anthropic-partners.skilljar.com/claude-certified-developer-foundations-certification) · [free prep course](https://anthropic-partners.skilljar.com/path/claude-certified-developer-foundations) · [Claude docs](https://platform.claude.com/docs) · [Claude Code docs](https://code.claude.com/docs)
 - Course I used: [Claude Certified Developer Foundations (CCDV-F) Exam Prep](https://www.udemy.com/course/claude-certified-developer-foundations-exam-prep/) by Kuljot Singh Bakshi, with his [public lab repo](https://github.com/kuljotSB/Claude-Certified-Developer-CCDV-F). The course is good for building a habit and hands-on feel; it's light on a few blueprint skills (see [blueprint.md](blueprint.md)).
 
-## Feedback
 Found something wrong, outdated or unclear? Open an issue or pull request. The platform changes quickly, so corrections are welcome.
 
 ## License
