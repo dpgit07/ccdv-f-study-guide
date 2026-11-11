@@ -92,8 +92,6 @@ These came up again and again in the notes and in practice material.
 - Course I used: [Claude Certified Developer Foundations (CCDV-F) Exam Prep](https://www.udemy.com/course/claude-certified-developer-foundations-exam-prep/) by Kuljot Singh Bakshi, with his [public lab repo](https://github.com/kuljotSB/Claude-Certified-Developer-CCDV-F). The course is good for building a habit and hands-on feel; it's light on a few blueprint skills (see [blueprint.md](blueprint.md)).
 - Practice exams I used: [Claude Certified Developer - Foundations Practice Exam Pack](https://www.udemy.com/course/claude-certified-developer-foundations-practice-exam-pack/) by Frank Kane: 6 timed practice tests (318 questions) with a per-domain breakdown. I found them challenging, with good coverage of all domains. They're independent of the video course, which makes them a more honest check.
 
-Found something wrong, outdated or unclear? Open an issue or pull request. The platform changes quickly, so corrections are welcome.
-
 ## License
 The written material in this repo (notes, blueprint map, templates, README) is licensed under
 [**Creative Commons Attribution 4.0 International (CC BY 4.0)**](https://creativecommons.org/licenses/by/4.0/): share and adapt freely, including commercially,
