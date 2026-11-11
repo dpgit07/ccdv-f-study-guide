@@ -1,6 +1,6 @@
 # Section 10 — Context Engineering and Management — Notes
 
-**Course used:** [Claude Certified Developer Foundations (CCDV-F) Exam Prep](https://www.udemy.com/course/claude-certified-developer-foundations-exam-prep/) by Kuljot Singh Bakshi (Udemy). Lab code: the instructor's public [lab repo](https://github.com/kuljotSB/Claude-Certified-Developer-CCDV-F); code excerpts below are abbreviated from it. Credit to the instructor.
+**Course used:** [Claude Certified Developer Foundations (CCDV-F) Exam Prep](https://www.udemy.com/course/claude-certified-developer-foundations-exam-prep/) by Kuljot Singh Bakshi (Udemy). Lab code: the instructor's public [lab repo](https://github.com/kuljotSB/Claude-Certified-Developer-CCDV-F); the code below is my own adaptation of standard SDK patterns shown in the labs, with generic example names. Credit to the instructor.
 **Lab file (in the course's lab repo):** `Context-Engineering/tool-search.ipynb` (the only lab in the repo for this section)
 **Exam weight:** ⭐ core — "Prompt and Context Engineering" and official objective 2 (plus objective 1's "context window as a fixed budget").
 
@@ -36,10 +36,10 @@ input tokens. A few tools is fine. **Dozens of tools** (an MCP server can expose
 ```python
 tools=[
   {"type": "tool_search_tool_bm25_20251119", "name": "tool_search_tool_bm25"},   # the search tool
-  {"type": "mcp_toolset", "mcp_server_name": "Microsoft Learn",
+  {"type": "mcp_toolset", "mcp_server_name": "docs_server",
    "default_config": {"enabled": True, "defer_loading": True}},                  # MCP tools, deferred
-  {"name": "GetCurrentWeather", ..., "defer_loading": True},                     # custom tool, deferred
-  {"name": "CalculateSum",      ..., "defer_loading": True},
+  {"name": "get_weather", ..., "defer_loading": True},                     # custom tool, deferred
+  {"name": "add_numbers",      ..., "defer_loading": True},
 ]
 betas=["mcp-client-2025-11-20"]
 ```
@@ -49,7 +49,7 @@ betas=["mcp-client-2025-11-20"]
   algorithm, the same family used in text search engines.) *(mechanism inferred from the names and
   config; confirm against the lecture)*
 - Tools you set `defer_loading` on can be **a mix of MCP and your own custom tools**, as the lab shows.
-- **The loop rules from Section 6 still apply:** `GetCurrentWeather` and `CalculateSum` are
+- **The loop rules from Section 6 still apply:** `get_weather` and `add_numbers` are
   **client-side**, so the lab still has a `while True` loop that runs them and returns `tool_result`s.
   The MCP tools are resolved server-side (`# Skip MCP tools`). *Any client-side tool = you own a loop.*
 

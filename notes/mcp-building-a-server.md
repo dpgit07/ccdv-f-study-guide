@@ -1,6 +1,6 @@
 # MCP — Building and Connecting a Server — Notes
 
-**Course used:** [Claude Certified Developer Foundations (CCDV-F) Exam Prep](https://www.udemy.com/course/claude-certified-developer-foundations-exam-prep/) by Kuljot Singh Bakshi (Udemy). Lab code: the instructor's public [lab repo](https://github.com/kuljotSB/Claude-Certified-Developer-CCDV-F); code excerpts below are abbreviated from it. Credit to the instructor.
+**Course used:** [Claude Certified Developer Foundations (CCDV-F) Exam Prep](https://www.udemy.com/course/claude-certified-developer-foundations-exam-prep/) by Kuljot Singh Bakshi (Udemy). Lab code: the instructor's public [lab repo](https://github.com/kuljotSB/Claude-Certified-Developer-CCDV-F); the code below is my own adaptation of standard SDK patterns shown in the labs, with generic example names. Credit to the instructor.
 **Lab files (in the course's lab repo):** `MCP-Servers/` (`server/server.py`, `Dockerfile`, `requirements.txt`, `MCP.ipynb`)
 **Exam weight:** feeds "Tools and MCPs" (~10.6% unofficial) and official objective 5 (MCP without leaking credentials).
 Companion to [section-06-tool-use.md](section-06-tool-use.md) §8 (the *client* side of MCP) and Section 8 (vaults).
@@ -20,24 +20,24 @@ can discover and call them **without custom glue per integration**. Write the se
 ## 2. The server (`server.py`): a few lines of Python
 ```python
 from mcp.server.fastmcp import FastMCP
-mcp = FastMCP(name="kuljot-mcp-server", host="0.0.0.0", port=8000)
+mcp = FastMCP(name="catalog-server", host="0.0.0.0", port=8000)
 
-@mcp.tool(name="get_course_by_rating",
-          description="Get courses based on the minimum rating provided by the user.",
+@mcp.tool(name="get_item_by_rating",
+          description="Return catalog items rated at or above the given minimum.",
           structured_output=True)
-def get_course_by_rating(min_rating: float) -> Dict[str, Any]:
+def get_item_by_rating(min_rating: float) -> Dict[str, Any]:
     ...
-    return {"courses": matched_courses}
+    return {"items": matched_items}
 
 mcp.run(transport="streamable-http", mount_path="/mcp")
 ```
 - **`@mcp.tool(...)` turns a typed Python function into an MCP tool.** The input schema comes from the **type hints**
   (same idea as `@beta_tool` in Section 6).
 - **`description` is what Claude reads to decide when to call it**, the same rule as every tool so far. The lab defines
-  6 clear, distinct tools (recipes by name/id; courses by title/id/rating; UFB courses).
+  a handful of clear, distinct lookup tools (by name, by id, by rating, and so on).
 - **`structured_output=True`** → the tool returns structured data (a dict) rather than free text, which links back to
   Section 4 (structured outputs): predictable, machine-readable results.
-- **Not-found handling:** returns `{"error": "Recipe not found"}`, a structured, explicit error Claude can act on. This
+- **Not-found handling:** returns `{"error": "Item not found"}`, a structured, explicit error Claude can act on. This
   is the right instinct (no silent failure), though MCP also has its own error flag *(general)*.
 - **Transport `streamable-http`** = a **remote** server reachable by URL. (The other common style is a local process
   over stdio *(general)*.)
@@ -49,14 +49,14 @@ mcp.run(transport="streamable-http", mount_path="/mcp")
 
 ## 4. Connecting Claude to it (`MCP.ipynb`)
 ```python
-mcp_servers=[{"type": "url", "url": mcp_server_url, "name": "Udemy Demo MCP Tool"}],
-tools=[{"type": "mcp_toolset", "mcp_server_name": "Udemy Demo MCP Tool"}],
+mcp_servers=[{"type": "url", "url": mcp_server_url, "name": "catalog_server"}],
+tools=[{"type": "mcp_toolset", "mcp_server_name": "catalog_server"}],
 betas=["mcp-client-2025-11-20"]
 ```
 - Same shape as Section 6: **`mcp_servers` (where) + `mcp_toolset` (which server's tools)**; the server URL comes
   from an env var (`MCP_SERVER_URL`), not hard-coded.
-- The prompt ("Kuljot's courses with rating above 4, which has the most lectures?") needs **no loop**: the platform
-  calls the MCP tools itself, so Claude picks `get_course_by_rating` on its own. (Loop rule: any *client-side* tool means you own a loop.)
+- A prompt such as "which catalog items are rated above 4, and which has the most reviews?" needs **no loop**: the platform
+  calls the MCP tools itself, so Claude picks `get_item_by_rating` on its own. (Loop rule: any *client-side* tool means you own a loop.)
 
 ## 5. Three ways MCP shows up in the course: keep them apart
 | Where | Who connects to the MCP server | Notebook |
@@ -69,7 +69,7 @@ betas=["mcp-client-2025-11-20"]
 - **This server has no authentication.** Fine for read-only demo data; for anything sensitive or with write tools you need authN/authZ, and
   you'd pass credentials via a **vault** (Section 8), never in prompts.
 - **Keep the tool list focused.** Six well-described tools is good; dozens → consider tool search (Section 10).
-- **Descriptions and names are the interface.** Overlapping tools (`get_courses` vs `get_course_by_rating`) are distinguished only by their descriptions.
+- **Descriptions and names are the interface.** Overlapping tools (for example a general `get_items` vs `get_item_by_rating`) are distinguished only by their descriptions.
 - Beyond tools, MCP also defines **resources and prompts** *(general; the lab only uses tools)*.
 
 ## 7. Likely exam angles *(my reading)*

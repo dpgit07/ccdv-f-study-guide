@@ -97,7 +97,7 @@ The written material in this repo (notes, blueprint map, templates, README) is l
 [**Creative Commons Attribution 4.0 International (CC BY 4.0)**](https://creativecommons.org/licenses/by/4.0/): share and adapt freely, including commercially,
 with credit to the author, a link to the license, and a note of any changes. See [LICENSE](LICENSE).
 
-**Not covered by that license:** code excerpts quoted from the course instructor's lab repo (they remain the instructor's), and Anthropic's documentation,
+**Not covered by that license:** the course and its lab repo (they remain the instructor's), and Anthropic's documentation,
 exam guide, names and trademarks (they remain Anthropic's).
 
 *Author: [@dpgit07](https://github.com/dpgit07)*

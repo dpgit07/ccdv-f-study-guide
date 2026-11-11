@@ -5,7 +5,7 @@ by Kuljot Singh Bakshi, with his [public lab repo](https://github.com/kuljotSB/C
 You don't need the course to use the notes. Each file explains the idea, shows the key code, and ends with likely exam angles and a self-check.
 
 > Unofficial and AI-assisted. Items marked *(general)*, *(my reading)*, *(inferred)* or *(outside the labs)* are inference, not fact; verify them in Anthropic's docs.
-> Code excerpts are abbreviated from the instructor's lab repo (credit to the instructor). They remain the instructor's work and are **not** covered by this repo's CC BY 4.0 license.
+> Code examples are my own adaptations of standard SDK patterns shown in the course labs, with generic example names (credit to the instructor for the lab structure). The course and its lab repo remain the instructor's work.
 
 | Note | Topic |
 |---|---|

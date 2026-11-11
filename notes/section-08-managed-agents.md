@@ -1,6 +1,6 @@
 # Section 8 — Claude Managed Agents — Notes
 
-**Course used:** [Claude Certified Developer Foundations (CCDV-F) Exam Prep](https://www.udemy.com/course/claude-certified-developer-foundations-exam-prep/) by Kuljot Singh Bakshi (Udemy). Lab code: the instructor's public [lab repo](https://github.com/kuljotSB/Claude-Certified-Developer-CCDV-F); code excerpts below are abbreviated from it. Credit to the instructor.
+**Course used:** [Claude Certified Developer Foundations (CCDV-F) Exam Prep](https://www.udemy.com/course/claude-certified-developer-foundations-exam-prep/) by Kuljot Singh Bakshi (Udemy). Lab code: the instructor's public [lab repo](https://github.com/kuljotSB/Claude-Certified-Developer-CCDV-F); the code below is my own adaptation of standard SDK patterns shown in the labs, with generic example names. Credit to the instructor.
 **Lab files (in the course's lab repo):** `Managed-Agents/*.ipynb` (7 notebooks + `skills/`)
 **Exam weight:** ⭐⭐ highest priority — "Agents and Workflows", plus objectives 4, 5, 7.
 
@@ -34,9 +34,9 @@ Managed Agents = a **managed job service** with a persistent run you submit even
 | **Events** | The messages going in and out | in: `user.message`; out: `agent.message`, `agent.tool_use`, `session.status_idle` |
 
 ```python
-with client.beta.sessions.events.stream(session.id) as stream:
-    client.beta.sessions.events.send(session.id, events=[{"type": "user.message", "content": [...]}])
-    for event in stream:
+with client.beta.sessions.events.stream(sess.id) as feed:
+    client.beta.sessions.events.send(sess.id, events=[{"type": "user.message", "content": [...]}])
+    for event in feed:
         match event.type:
             case "agent.message": ...
             case "agent.tool_use": ...
@@ -53,7 +53,7 @@ with client.beta.sessions.events.stream(session.id) as stream:
 
 ## 3. Multi-agent orchestration (`Multi-Agent.ipynb`) ⭐
 ```python
-coordinator = client.beta.agents.create(name="Editorial-Head", ...,
+coordinator = client.beta.agents.create(name="Coordinator", ...,
     multiagent={"type": "coordinator", "agents": [{"type": "agent", "id": researcher.id},
                                                    {"type": "agent", "id": writer.id}]})
 ```
@@ -67,7 +67,7 @@ coordinator = client.beta.agents.create(name="Editorial-Head", ...,
 
 ## 4. Persistent memory store (`persistent-memory.ipynb`) ⭐
 ```python
-store = client.beta.memory_stores.create(name="User Profile", description="...")
+store = client.beta.memory_stores.create(name="User preferences", description="...")
 resources=[{"type": "memory_store", "memory_store_id": store.id, "access": "read_write",
             "instructions": "User preferences... Check before starting any task."}]
 ```
@@ -86,9 +86,9 @@ resources=[{"type": "memory_store", "memory_store_id": store.id, "access": "read
 
 ## 5. Vaults — secrets done right (`Vaults.ipynb`) ⭐ (official objective 7)
 ```python
-vault = client.beta.vaults.create(display_name="GitHub PAT Vault")
+vault = client.beta.vaults.create(display_name="Service token vault")
 client.beta.vaults.credentials.create(vault_id=vault.id,
-    auth={"type": "static_bearer", "mcp_server_url": "https://api.githubcopilot.com/mcp/", "token": github_pat})
+    auth={"type": "static_bearer", "mcp_server_url": "https://api.githubcopilot.com/mcp/", "token": service_token})
 session = client.beta.sessions.create(agent=agent.id, environment_id=env.id, vault_ids=[vault.id])
 ```
 - The **agent definition names the MCP server but holds no secret**. The credential sits in a

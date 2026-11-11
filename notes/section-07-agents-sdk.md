@@ -1,6 +1,6 @@
 # Section 7 — Claude Agents SDK — Notes
 
-**Course used:** [Claude Certified Developer Foundations (CCDV-F) Exam Prep](https://www.udemy.com/course/claude-certified-developer-foundations-exam-prep/) by Kuljot Singh Bakshi (Udemy). Lab code: the instructor's public [lab repo](https://github.com/kuljotSB/Claude-Certified-Developer-CCDV-F); code excerpts below are abbreviated from it. Credit to the instructor.
+**Course used:** [Claude Certified Developer Foundations (CCDV-F) Exam Prep](https://www.udemy.com/course/claude-certified-developer-foundations-exam-prep/) by Kuljot Singh Bakshi (Udemy). Lab code: the instructor's public [lab repo](https://github.com/kuljotSB/Claude-Certified-Developer-CCDV-F); the code below is my own adaptation of standard SDK patterns shown in the labs, with generic example names. Credit to the instructor.
 **Lab files (in the course's lab repo):** `Agents-SDK/*.py` (+ `.claude/skills/`, `claude-agent-api/`)
 **Exam weight:** ⭐⭐ highest priority — "Agents and Workflows", official objectives 4 and 5.
 
@@ -25,24 +25,24 @@ repeat cycle; each row just moves more of it off your plate. *(Decision framing 
 ## 2. The core call: `query()` (`Getting-Started.py`)
 
 ```python
-async for message in query(
-    prompt="Review utils.py for bugs that would cause crashes. Fix any issues you find.",
+async for msg in query(
+    prompt="Find and fix any bugs in helpers.py that could cause a crash.",
     options=ClaudeAgentOptions(
-        model=claude_model_name,
-        allowed_tools=["Read", "Edit", "Glob"],
+        model=MODEL_NAME,
+        allowed_tools=["Read", "Glob", "Edit"],
         permission_mode="acceptEdits",
     ),
 ):
-    if isinstance(message, AssistantMessage): ...   # blocks: text, tool_use (has .name)
-    elif isinstance(message, ResultMessage): ...    # final: .subtype, .result
+    if isinstance(msg, AssistantMessage): ...   # blocks: text, tool_use (has .name)
+    elif isinstance(msg, ResultMessage): ...    # final: .subtype, .result
 ```
 
 - `query()` is an **async generator**: it streams messages as the agent works through its
   loop. You consume them; you don't write the tool loop.
 - Message types to recognise: **`AssistantMessage`** (text blocks and tool-use blocks) and
   **`ResultMessage`** (the end: `subtype` says how it finished, `result` is the final text).
-- The task in the lab: `utils.py` has two crash bugs (divide-by-zero on an empty list;
-  `KeyError` on a missing `"name"`). The agent **reads → finds → edits** the file itself.
+- The task in the lab: a small helper file contains crash bugs (for example dividing by the length of an empty
+  list, or reading a dict key that may be missing). The agent **reads → finds → edits** the file itself.
 
 ### The permission model (official objective 5)
 - **`allowed_tools`** = an allow-list. Only these tools are available/pre-approved →
@@ -57,8 +57,8 @@ async for message in query(
 ## 3. MCP in the Agent SDK (`Multi-Tool.py`)
 
 ```python
-mcp_servers={"MSLearnMCPServer": {"type": "http", "url": "https://learn.microsoft.com/api/mcp"}},
-allowed_tools=["mcp__MSLearnMCPServer__*", "Read", "Edit", "Glob", "WebSearch", "WebFetch"]
+mcp_servers={"docs_server": {"type": "http", "url": "https://mcp.example.com/mcp"}},
+allowed_tools=["mcp__docs_server__*", "Read", "Glob"]
 ```
 
 - MCP tools are named **`mcp__<server-name>__<tool>`**; the `*` wildcard allows everything
@@ -71,11 +71,11 @@ allowed_tools=["mcp__MSLearnMCPServer__*", "Read", "Edit", "Glob", "WebSearch", 
 ## 4. Subagents (`subagents.py`) ⭐
 
 ```python
-MARKETING_AGENTS = {
-  "market-researcher": AgentDefinition(description="Expert in market research...", prompt="...", tools=[]),
-  "content-creator":   AgentDefinition(description="Expert in marketing content...", prompt="...", tools=[]),
+SUBAGENTS = {
+  "researcher": AgentDefinition(description="Gathers and summarises facts on a topic.", prompt="...", tools=[]),
+  "writer":     AgentDefinition(description="Turns research notes into a short article.", prompt="...", tools=[]),
 }
-options=ClaudeAgentOptions(allowed_tools=["Agent"], agents=MARKETING_AGENTS)
+options=ClaudeAgentOptions(allowed_tools=["Agent"], agents=SUBAGENTS)
 ```
 
 - A **main agent delegates** to subagents through the built-in **`Agent`** tool (hence
@@ -92,20 +92,20 @@ options=ClaudeAgentOptions(allowed_tools=["Agent"], agents=MARKETING_AGENTS)
 
 ---
 
-## 5. Skills (`claude-skills.py` + `.claude/skills/marketing-review/`)
+## 5. Skills (`claude-skills.py` + `.claude/skills/brand-review/`)
 
 ```python
-ClaudeAgentOptions(cwd=os.getcwd(), setting_sources=["project"], skills=["marketing-review"])
+ClaudeAgentOptions(cwd=os.getcwd(), setting_sources=["project"], skills=["brand-review"])
 ```
 ```
-.claude/skills/marketing-review/
+.claude/skills/brand-review/
   SKILL.md                 ← frontmatter: name + description; instructions
-  brand-guidelines.md, marketing-checklist.md, linkedin-template.md   ← supporting files
+  style-guide.md, review-checklist.md, post-template.md   ← supporting files
 ```
 
 - A **skill = a folder of instructions + reference files** the agent can pull in for a type
   of task. `SKILL.md` has a `name` and a `description`; its body tells the agent which
-  supporting files to read ("Read brand-guidelines.md, then…").
+  supporting files to read ("Read style-guide.md, then…").
 - `setting_sources=["project"]` tells the SDK to load project-level config from `cwd`
   (that's where `.claude/skills/` lives) — **durable project context** (official obj. 5).
 - **Why skills rather than a giant system prompt:** reusable, versioned in the repo, and the

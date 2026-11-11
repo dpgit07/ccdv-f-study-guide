@@ -1,6 +1,6 @@
 # Section 11 — Claude Code for Developers — Notes
 
-**Course used:** [Claude Certified Developer Foundations (CCDV-F) Exam Prep](https://www.udemy.com/course/claude-certified-developer-foundations-exam-prep/) by Kuljot Singh Bakshi (Udemy). Lab code: the instructor's public [lab repo](https://github.com/kuljotSB/Claude-Certified-Developer-CCDV-F); code excerpts below are abbreviated from it. Credit to the instructor.
+**Course used:** [Claude Certified Developer Foundations (CCDV-F) Exam Prep](https://www.udemy.com/course/claude-certified-developer-foundations-exam-prep/) by Kuljot Singh Bakshi (Udemy). Lab code: the instructor's public [lab repo](https://github.com/kuljotSB/Claude-Certified-Developer-CCDV-F); the code below is my own adaptation of standard SDK patterns shown in the labs, with generic example names. Credit to the instructor.
 **Lab files (in the course's lab repo):** `Claude-Code/` — three markdown files: `Claude.md`, `Testing-Skill.md`, `web-api-development.md`
 **Exam weight:** the unofficial estimate puts the Claude Code domain at only ~3% (about 2 questions), but official
 objective 5 ("run Claude Code under a permission model, give it durable project context, package workflows as Skills
@@ -15,8 +15,8 @@ and plugins") is broader. Light pass, but know the vocabulary.
 ```
 1. Put project rules in CLAUDE.md                  (durable context)
 2. Prompt: "Using the project requirements defined in CLAUDE.md, build ..."   (task prompt points at the context)
-3. Add a Skill (fastapi-testing) for a repeatable task type
-4. "Generate a comprehensive pytest suite ..."      (Claude uses the skill)
+3. Add a Skill (api-testing) for a repeatable task type
+4. "Write pytest tests for every endpoint ..."      (Claude uses the skill)
 5. pip install pytest httpx  →  pytest             (YOU run the tests: verification)
 ```
 Project built: a Task Management REST API (FastAPI) with `GET/POST/PUT/DELETE /tasks`, in-memory storage.
@@ -45,16 +45,16 @@ CLAUDE.md", which is exactly the point: **put what's always true in CLAUDE.md, p
 
 ## 3. Skills = on-demand procedures (`Testing-Skill.md`) ⭐
 ```
-.claude/skills/fastapi-testing/SKILL.md
+.claude/skills/api-testing/SKILL.md
 ---
-name: fastapi-testing
-description: Generate comprehensive pytest test suites for FastAPI applications.
+name: api-testing
+description: Write pytest test suites for a web API (use when asked to add or improve endpoint tests).
 ---
-Use this Skill whenever the user asks you to: generate API test cases / test endpoints / improve coverage ...
-When invoked: 1. pytest-compatible tests  2. FastAPI TestClient  3. success cases  4. validation failures
-              5. edge cases  6. verify status codes  7. verify payloads  8. suggest missing scenarios
+When to use: the user asks for endpoint tests, better coverage, or checks for invalid input.
+Steps: 1. use the framework's test client  2. cover the happy path  3. cover invalid input and edge cases
+       4. check status codes and response bodies  5. list any scenarios still untested
 ```
-- Same structure as the Section 7/8 marketing skill: a folder with `SKILL.md` (`name` + `description` + instructions).
+- Same structure as the skills in Sections 7 and 8: a folder with `SKILL.md` (`name` + `description` + instructions).
 - **The `description` decides when the skill gets used**, just like tool descriptions and subagent descriptions.
   Vague description → skill not picked when it should be.
 
@@ -89,7 +89,7 @@ This section's files don't show permissions, but the objective names them. Cover
 ## 6. Self-check
 1. A rule says "never modify files in `/prod`". Put it in CLAUDE.md, a Skill, or somewhere else? Why?
 2. How does the task prompt in `web-api-development.md` avoid repeating the project's requirements?
-3. What makes Claude choose to use the `fastapi-testing` skill?
+3. What makes Claude choose to use the `api-testing` skill?
 4. What's the difference between an `allowed_tools` allow-list and a `PreToolUse` hook?
 
 *Answers: (1) somewhere enforceable (permissions/hook/code), because CLAUDE.md and Skills are guidance the model may not follow. (2) it points at CLAUDE.md, which Claude loads as durable context. (3) the skill's `description` (and its "use this when..." text) matching the request. (4) the allow-list pre-approves which tools can run; a hook is custom code that runs on each tool call and can allow, deny or modify it.*

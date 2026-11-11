@@ -1,6 +1,6 @@
 # Section 6 — Use Tools with the Claude API — Notes
 
-**Course used:** [Claude Certified Developer Foundations (CCDV-F) Exam Prep](https://www.udemy.com/course/claude-certified-developer-foundations-exam-prep/) by Kuljot Singh Bakshi (Udemy). Lab code: the instructor's public [lab repo](https://github.com/kuljotSB/Claude-Certified-Developer-CCDV-F); code excerpts below are abbreviated from it. Credit to the instructor.
+**Course used:** [Claude Certified Developer Foundations (CCDV-F) Exam Prep](https://www.udemy.com/course/claude-certified-developer-foundations-exam-prep/) by Kuljot Singh Bakshi (Udemy). Lab code: the instructor's public [lab repo](https://github.com/kuljotSB/Claude-Certified-Developer-CCDV-F); the code below is my own adaptation of standard SDK patterns shown in the labs, with generic example names. Credit to the instructor.
 **Lab files (in the course's lab repo):** `Tool-Use/*.ipynb` (9 notebooks)
 **Exam weight:** ⭐⭐ highest priority — feeds "Tools and MCPs", "Agents and Workflows", and official Module 2 objective 3 (*"define tool schemas, construct the tool-use loop"*).
 
@@ -12,7 +12,7 @@
 ## 1. The one idea that connects everything
 
 **A tool is a function Claude can *ask* to have run. Claude never runs anything itself.**
-Claude only emits a *request* ("call GetCurrentWeather with location=London"). Somebody
+Claude only emits a *request* ("call get_weather with location=London"). Somebody
 then has to execute it. Every tool in this section differs in just one thing — **who that
 somebody is.**
 
@@ -41,7 +41,7 @@ From `user-defined-tool.ipynb`. Trace it as the `messages` list changes:
 messages = [ user: "What's the weather in London?" ]
         │
         ▼  client.messages.create(tools=tools, messages=messages)
-Claude returns:  assistant: [ text?, tool_use{ id:"toolu_1", name:"GetCurrentWeather", input:{location:"London"} } ]
+Claude returns:  assistant: [ text?, tool_use{ id:"toolu_1", name:"get_weather", input:{location:"London"} } ]
         │
         ▼  YOU append that assistant response to messages        ← statelessness (Section 3)!
         ▼  YOU run get_current_weather("London")
@@ -81,7 +81,7 @@ result is fed back until the planner says there's nothing left to do.
 
 ```python
 {
-  "name": "GetCurrentWeather",
+  "name": "get_weather",
   "description": "Retrieve the current weather ... using the wttr.in service.",
   "input_schema": { "type": "object",
                     "properties": { "location": {"type": "string", "description": "City ..."} },
@@ -108,11 +108,11 @@ result is fed back until the planner says there's nothing left to do.
 
 ```python
 @beta_tool
-def get_weather(location: str) -> str:
-    """Get the current weather in a given location.
-    Args: location: The city ..."""
+def get_weather(city: str) -> str:
+    """Look up current conditions for a city.
+    Args: city: Name of the city to look up."""
 
-runner = client.beta.messages.tool_runner(model=..., tools=[get_weather, calculate_sum], messages=[...])
+runner = client.beta.messages.tool_runner(model=..., tools=[get_weather, add_numbers], messages=[...])
 for message in runner: ...
 ```
 
@@ -193,8 +193,8 @@ betas=["advisor-tool-2026-03-01"]
 ## 8. MCP connector and mixing tool types (`MCP.ipynb`, `Multi-Tool.ipynb`)
 
 ```python
-mcp_servers=[{"type": "url", "url": "https://learn.microsoft.com/api/mcp", "name": "MSLearnMCPServer"}],
-tools=[{"type": "mcp_toolset", "mcp_server_name": "MSLearnMCPServer"}],
+mcp_servers=[{"type": "url", "url": "https://mcp.example.com/mcp", "name": "docs_server"}],
+tools=[{"type": "mcp_toolset", "mcp_server_name": "docs_server"}],
 betas=["mcp-client-2025-11-20"]
 ```
 
@@ -202,7 +202,7 @@ betas=["mcp-client-2025-11-20"]
   without custom glue per integration. Here the **API itself connects to the remote
   server** — so `MCP.ipynb` has **no loop**.
 - `Multi-Tool.ipynb` **mixes** an MCP toolset *and* your own client-side
-  `GetCurrentWeather` in one call: the MCP calls resolve server-side, but because a
+  `get_weather` in one call: the MCP calls resolve server-side, but because a
   client tool is present **you still need the loop** to handle *that* tool.
   **Rule: the moment any tool is client-side, you own a loop.**
 - Credentials/secrets for MCP must never be pasted into prompts or schemas — the
@@ -252,7 +252,7 @@ betas=["mcp-client-2025-11-20"]
 
 ## 12. Self-check — can you answer these without scrolling up?
 
-1. Who executes a `GetCurrentWeather` tool in `user-defined-tool.ipynb`, and what does Claude actually return?
+1. Who executes a `get_weather` tool in `user-defined-tool.ipynb`, and what does Claude actually return?
 2. Why does the `tool_result` go in a `user` message, and what must you append *before* it?
 3. Which of web search / code execution / memory / your own function needs you to write `tool_result` handling? Why?
 4. When would you hand-roll the loop instead of using `tool_runner`?

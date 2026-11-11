@@ -1,6 +1,6 @@
 # Section 3 — Claude AI Foundations and Fundamentals — Notes
 
-**Course used:** [Claude Certified Developer Foundations (CCDV-F) Exam Prep](https://www.udemy.com/course/claude-certified-developer-foundations-exam-prep/) by Kuljot Singh Bakshi (Udemy). Lab code: the instructor's public [lab repo](https://github.com/kuljotSB/Claude-Certified-Developer-CCDV-F); code excerpts below are abbreviated from it. Credit to the instructor.
+**Course used:** [Claude Certified Developer Foundations (CCDV-F) Exam Prep](https://www.udemy.com/course/claude-certified-developer-foundations-exam-prep/) by Kuljot Singh Bakshi (Udemy). Lab code: the instructor's public [lab repo](https://github.com/kuljotSB/Claude-Certified-Developer-CCDV-F); the code below is my own adaptation of standard SDK patterns shown in the labs, with generic example names. Credit to the instructor.
 **Lab file (in the course's lab repo):** `Getting-Started/messages-api.ipynb`
 
 ---
@@ -10,7 +10,7 @@
 ```python
 %pip install anthropic python-dotenv
 load_dotenv()
-client = anthropic.Anthropic(api_key=claude_api_key)
+client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 ```
 
 Same boilerplate across the whole course — install SDK, load `.env`, create one client, reuse it.
@@ -21,8 +21,8 @@ Same boilerplate across the whole course — install SDK, load `.env`, create on
 
 ```python
 message = client.messages.create(
-    model=claude_model_name,
-    system="You are Batman...",
+    model=MODEL_NAME,
+    system="You are a helpful travel-desk assistant.",
     messages=[{"role": "user", "content": "..."}],
     max_tokens=20000
 )

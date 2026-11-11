@@ -1,6 +1,6 @@
 # Section 5 — RAG (Retrieval Augmented Generation) — Notes
 
-**Course used:** [Claude Certified Developer Foundations (CCDV-F) Exam Prep](https://www.udemy.com/course/claude-certified-developer-foundations-exam-prep/) by Kuljot Singh Bakshi (Udemy). Lab code: the instructor's public [lab repo](https://github.com/kuljotSB/Claude-Certified-Developer-CCDV-F); code excerpts below are abbreviated from it. Credit to the instructor.
+**Course used:** [Claude Certified Developer Foundations (CCDV-F) Exam Prep](https://www.udemy.com/course/claude-certified-developer-foundations-exam-prep/) by Kuljot Singh Bakshi (Udemy). Lab code: the instructor's public [lab repo](https://github.com/kuljotSB/Claude-Certified-Developer-CCDV-F); the code below is my own adaptation of standard SDK patterns shown in the labs, with generic example names. Credit to the instructor.
 **Lab files (in the course's lab repo):** `RAG/load-vectors.ipynb`, `RAG/RAG.ipynb`
 
 > ⚠️ **Marked optional in the study plan** — this section is not named in Anthropic's
@@ -36,8 +36,8 @@ reader = PdfReader(file)
 content = "".join(page.extract_text() for page in reader.pages)
 
 # 2. Generate an embedding vector for each document (OpenAI, not Claude)
-response = client.embeddings.create(model="text-embedding-3-small", input=document["content"])
-document["vector"] = response.data[0].embedding
+result = embed_client.embeddings.create(model="text-embedding-3-small", input=doc_text)
+vector = result.data[0].embedding
 
 # 3. Store vectors in Qdrant (a vector database)
 qdrant_client.create_collection(collection_name=..., vectors_config=VectorParams(size=1536, distance=Distance.DOT))
@@ -61,30 +61,30 @@ in yours: a place optimized to answer "give me the closest matches to X" fast, a
 ## `RAG.ipynb` — the runtime query pipeline
 
 ```python
-def generate_vector_embeddings(user_query):
-    return openai_client.embeddings.create(model="text-embedding-3-small", input=user_query).data[0].embedding
+def embed_text(question):
+    return openai_client.embeddings.create(model="text-embedding-3-small", input=question).data[0].embedding
 
-def context_retrieval(user_query):
-    user_embeddings = generate_vector_embeddings(user_query)
-    search_result = qdrant_client.query_points(
-        collection_name="margies_travel_embeddings",
-        query=user_embeddings,
+def retrieve_context(question):
+    query_vector = embed_text(question)
+    hits = qdrant_client.query_points(
+        collection_name="docs_embeddings",
+        query=query_vector,
         limit=2
     ).points
-    return search_result[0].payload.get("content")  # top match only
+    return hits[0].payload.get("content")  # top match only
 
-context = context_retrieval(user_query)
+context = retrieve_context(question)
 
 # Feed the retrieved text to Claude as context
 messages=[{
     "role": "user",
-    "content": f"answer the user query using the provided supporting knowledge \n user query: {user_query} \n supporting_text: {context}"
+    "content": f"Answer the question using only the context below.\n\nQuestion: {question}\n\nContext:\n{context}"
 }]
 ```
 
 **The pattern, step by step:**
 1. Embed the *user's question* the same way documents were embedded (same model — this must match, or the vectors aren't comparable)
-2. Search the vector DB for the closest document(s) — `limit=2` fetches the top 2, but the code only uses `search_result[0]` (the single best match) — worth noticing, since that's a subtle "why only the top one?" design choice you could imagine being asked about
+2. Search the vector DB for the closest document(s) — `limit=2` fetches the top 2, but the code only uses `hits[0]` (the single best match) — worth noticing, since that's a subtle "why only the top one?" design choice you could imagine being asked about
 3. Manually build a prompt that says "here's the question, here's supporting text, answer using it"
 4. Send to Claude via the normal Messages API — **RAG is not a special API call**, it's a *pattern*: retrieve first, then call the regular `messages.create`/`messages.stream` calls from Section 3
 
